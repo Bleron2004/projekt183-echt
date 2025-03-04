@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorText = document.getElementById("error");
 
   loginButton.addEventListener("click", async () => {
-    errorText.innerText = ""; // 🔹 Vorherige Fehlernachricht leeren
+    errorText.innerText = "";
 
     const username = usernameInput.value;
     const password = passwordInput.value;
@@ -23,9 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
-        window.location.href = "/"; // 🔹 Weiterleitung nach Login
+        window.location.href = "/";
       } else {
-        errorText.innerText = data.message || JSON.stringify(data, null, 2); // 🔹 Korrekte Fehleranzeige
+        errorText.innerText = data.message || JSON.stringify(data, null, 2);
       }
     } catch (error) {
       console.error("Fehler beim Login:", error);

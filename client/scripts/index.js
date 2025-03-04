@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const postTweetButton = document.getElementById("post-tweet");
   const logoutButton = document.getElementById("logout");
 
-  const token = localStorage.getItem("token"); // 🔹 Token holen
+  const token = localStorage.getItem("token");
   if (!token) {
     window.location.href = "/login.html";
   }
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}` // 🔹 Token mitgeben
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({ query }),
     });
