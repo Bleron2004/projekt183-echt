@@ -40,20 +40,22 @@ const getFeed = async (req, res) => {
 };
 
 const postTweet = (req, res) => {
-  const sanitizedText = req.sanitize(req.body.text);
-  const username = req.user.username;
+  const sanitizedText = escapeHtml(req.body.text);
+  const username = req.user.username; // 🔹 Der eingeloggte User wird automatisch gesetzt
   const timestamp = new Date().toISOString();
 
   const query = `INSERT INTO tweets (username, timestamp, text) VALUES (?, ?, ?)`;
 
   insertDB(db, query, [username, timestamp, sanitizedText])
       .then(() => {
-        res.json({ status: "Tweet erfolgreich gespeichert!" });
+        res.json({ status: "Tweet gespeichert!", text: sanitizedText });
       })
       .catch((error) => {
+        console.error(" Fehler beim Speichern des Tweets:", error);
         res.status(500).json({ message: "Fehler beim Speichern des Tweets" });
       });
 };
+
 
 const login = async (req, res) => {
   const { username, password } = req.body;
