@@ -1,14 +1,23 @@
 const { initializeDatabase, queryDB, insertDB } = require("./database");
 const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit");
+
 const SECRET_KEY = "dein_geheimer_schlüssel";
 
 let db;
+
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 5, //
+  message: "Zu viele fehlgeschlagene Login-Versuche. Bitte warte 15 Minuten.",
+  headers: true,
+});
 
 const initializeAPI = async (app) => {
   db = await initializeDatabase();
   app.get("/api/feed", getFeed);
   app.post("/api/feed", authenticateToken, postTweet);
-  app.post("/api/login", login);
+  app.post("/api/login", loginLimiter, login);
 };
 
 
@@ -42,7 +51,6 @@ const login = async (req, res) => {
   const user = await queryDB(db, query);
 
   if (user.length === 1) {
-
     const token = jwt.sign({ id: user[0].id, username: user[0].username }, SECRET_KEY, { expiresIn: "1h" });
     res.json({ token });
   } else {
