@@ -19,11 +19,21 @@ const createUsersTable = `
                                      password TEXT NOT NULL
   )`;
 
-const seedUsersTable = `
-  INSERT OR IGNORE INTO users (username, password) VALUES
-  ('switzerchees', '123456'),
-  ('john', '123456'),
-  ('jane', '123456')`;
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+
+const seedUsersTable = async (db) => {
+  const users = [
+    { username: "switzerchees", password: "123456" },
+    { username: "john", password: "123456" },
+    { username: "jane", password: "123456" }
+  ];
+
+  for (const user of users) {
+    const hashedPassword = await bcrypt.hash(user.password, saltRounds);
+    db.run(`INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)`, [user.username, hashedPassword]);
+  }
+};
 
 const initializeDatabase = async () => {
   const db = new sqlite3.Database("./minitwitter.db");
