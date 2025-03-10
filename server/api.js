@@ -2,9 +2,13 @@ const { initializeDatabase, queryDB, insertDB } = require("./database");
 const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const sanitizer = require("express-sanitizer");
+const crypto = require("crypto"); // 🔹 Neu hinzugefügt für Verschlüsselung
+
+
 
 const SECRET_KEY = "dein_geheimer_schlüssel";
-
+const ENCRYPTION_KEY = crypto.randomBytes(32); // 🔹 Key für AES-Verschlüsselung
+const IV_LENGTH = 16;
 let db;
 
 const loginLimiter = rateLimit({
@@ -13,6 +17,24 @@ const loginLimiter = rateLimit({
   message: "Zu viele fehlgeschlagene Login-Versuche. Bitte warte 15 Minuten.",
   headers: true,
 });
+
+const encrypt = (text) => {
+  let iv = crypto.randomBytes(IV_LENGTH);
+  let cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString("hex") + ":" + encrypted.toString("hex");
+};
+
+const decrypt = (text) => {
+  let textParts = text.split(":");
+  let iv = Buffer.from(textParts.shift(), "hex");
+  let encryptedText = Buffer.from(textParts.join(":"), "hex");
+  let decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY), iv);
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  return decrypted.toString();
+};
 
 const initializeAPI = async (app) => {
   db = await initializeDatabase();
@@ -39,10 +61,23 @@ const getFeed = async (req, res) => {
   res.json(tweets);
 };
 
+
+const decryptedTweets = tweets.map((tweet) => ({
+  ...tweet,
+  text: decrypt(tweet.text),
+}));
+
+res.json(decryptedTweets);
+};
+
 const postTweet = (req, res) => {
   const sanitizedText = escapeHtml(req.body.text);
-  const username = req.user.username; // 🔹 Der eingeloggte User wird automatisch gesetzt
+  const username = req.user.username;
   const timestamp = new Date().toISOString();
+
+  const encryptedText = encrypt(sanitizedText);
+  console.log("Verschlüsselter Text:", encryptedText);
+
 
   const query = `INSERT INTO tweets (username, timestamp, text) VALUES (?, ?, ?)`;
 
