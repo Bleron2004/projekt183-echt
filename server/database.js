@@ -1,40 +1,44 @@
 const sqlite3 = require("sqlite3").verbose();
 
 const tweetsTableExists =
-  "SELECT name FROM sqlite_master WHERE type='table' AND name='tweets'";
-const createTweetsTable = `CREATE TABLE tweets (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT,
-  timestamp TEXT,
-  text TEXT
-)`;
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='tweets'";
+const createTweetsTable = `
+  CREATE TABLE IF NOT EXISTS tweets (
+                                      id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                      username TEXT NOT NULL,
+                                      timestamp TEXT NOT NULL,
+                                      text TEXT NOT NULL
+  )`;
+
 const usersTableExists =
-  "SELECT name FROM sqlite_master WHERE type='table' AND name='users'";
-const createUsersTable = `CREATE TABLE users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT,
-  password TEXT
-)`;
-const seedUsersTable = `INSERT INTO users (username, password) VALUES
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='users'";
+const createUsersTable = `
+  CREATE TABLE IF NOT EXISTS users (
+                                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                     username TEXT NOT NULL UNIQUE,
+                                     password TEXT NOT NULL
+  )`;
+
+const seedUsersTable = `
+  INSERT OR IGNORE INTO users (username, password) VALUES
   ('switzerchees', '123456'),
   ('john', '123456'),
-  ('jane', '123456')
-`;
+  ('jane', '123456')`;
 
 const initializeDatabase = async () => {
   const db = new sqlite3.Database("./minitwitter.db");
 
   db.serialize(() => {
-    db.get(tweetsTableExists, [], async (err, row) => {
+    db.get(tweetsTableExists, [], (err, row) => {
       if (err) return console.error(err.message);
       if (!row) {
-        await db.run(createTweetsTable);
+        db.run(createTweetsTable);
       }
     });
-    db.get(usersTableExists, [], async (err, row) => {
+    db.get(usersTableExists, [], (err, row) => {
       if (err) return console.error(err.message);
       if (!row) {
-        db.run(createUsersTable, [], async (err) => {
+        db.run(createUsersTable, [], (err) => {
           if (err) return console.error(err.message);
           db.run(seedUsersTable);
         });
@@ -45,18 +49,18 @@ const initializeDatabase = async () => {
   return db;
 };
 
-const insertDB = (db, query) => {
+const insertDB = (db, query, params = []) => {
   return new Promise((resolve, reject) => {
-    db.run(query, [], (err, rows) => {
+    db.run(query, params, function (err) {
       if (err) return reject(err);
-      resolve(rows);
+      resolve(this.lastID);
     });
   });
 };
 
-const queryDB = (db, query) => {
+const queryDB = (db, query, params = []) => {
   return new Promise((resolve, reject) => {
-    db.all(query, [], (err, rows) => {
+    db.all(query, params, (err, rows) => {
       if (err) return reject(err);
       resolve(rows);
     });
