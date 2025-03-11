@@ -4,20 +4,17 @@ const tweetsTableExists =
     "SELECT name FROM sqlite_master WHERE type='table' AND name='tweets'";
 const createTweetsTable = `
   CREATE TABLE IF NOT EXISTS tweets (
-                                      id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                      username TEXT NOT NULL,
-                                      timestamp TEXT NOT NULL,
-                                      text TEXT NOT NULL
-  )`;
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+username TEXT NOT NULL,
+timestamp TEXT NOT NULL,
+text TEXT NOT NULL)`;
 
-const usersTableExists =
-    "SELECT name FROM sqlite_master WHERE type='table' AND name='users'";
+const usersTableExists = "SELECT name FROM sqlite_master WHERE type='table' AND name='users'";
 const createUsersTable = `
-  CREATE TABLE IF NOT EXISTS users (
-                                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                     username TEXT NOT NULL UNIQUE,
-                                     password TEXT NOT NULL
-  )`;
+CREATE TABLE IF NOT EXISTS users (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+username TEXT NOT NULL UNIQUE,
+password TEXT NOT NULL)`;
 
 const bcrypt = require("bcrypt");
 const saltRounds = 10;

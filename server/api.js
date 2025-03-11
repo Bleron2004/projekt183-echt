@@ -125,6 +125,9 @@ const login = async (req, res) => {
   const query = `SELECT * FROM users WHERE username = ? AND password = ?`;
   const user = await queryDB(db, query, [username, password]);
 
+  // Logging für Anmeldeversuch
+  console.log(`[LOGIN ATTEMPT] Benutzername: ${username} - Erfolg: ${user.length === 1}`);
+
   if (user.length === 1) {
     const token = jwt.sign({ id: user[0].id, username: user[0].username }, SECRET_KEY, { expiresIn: "1h" });
     res.json({ token });
@@ -132,5 +135,6 @@ const login = async (req, res) => {
     res.status(401).json({ message: "Ungültige Zugangsdaten" });
   }
 };
+
 
 module.exports = { initializeAPI };
